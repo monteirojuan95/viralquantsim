@@ -1,5 +1,6 @@
 # ViralQuantSim
 
+[![DOI](https://zenodo.org/badge/1307194269.svg)](https://doi.org/10.5281/zenodo.21465924)
 [![R-CMD-check](https://github.com/monteirojuan95/viralquantsim/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/monteirojuan95/viralquantsim/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 
