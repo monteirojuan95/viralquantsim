@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "ViralQuantSim"
+message: "Please cite this software using the metadata below."
+type: software
+authors:
+  - family-names: "Monteiro da Silva"
+    given-names: "Juan"
+    email: "juan.monteiro@outlook.com"
+version: 0.1.0
+date-released: 2026-07-20
+license: MIT
+repository-code: "https://github.com/monteirojuan95/viralquantsim"
+abstract: >-
+  An R framework and Shiny interface for mechanistic simulation and benchmarking
+  of spike-in internal-control normalisation in integrated qPCR and sequencing
+  workflows.

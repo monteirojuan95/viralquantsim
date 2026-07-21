@@ -1,0 +1,126 @@
+---
+title: "ViralQuantSim: rationale, model, and default calibration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ViralQuantSim: rationale, model, and default calibration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(viralquantsim)
+```
+
+## Motivation
+
+Internal-control normalisation --- correcting a target measurement against a
+reference signal measured alongside it --- is standard across quantitative
+molecular assays. Examples include housekeeping-gene normalisation and the
+comparative-Ct (Delta Ct) method in qPCR, and spike-in controls in sequencing
+workflows. Its benefit, however, is conditional: a reference can only remove the
+technical variation it *shares* with the target, and in exchange it contributes
+its own measurement noise. Whether normalisation helps therefore depends on the
+balance of those two quantities.
+
+Paired datasets in which the true target load is known, alongside target and
+internal-control measurements, are rarely public. ViralQuantSim does not
+reconstruct any specific study. Instead it makes the data-generating assumptions
+explicit and asks a methodological question: under which technical conditions
+does an internal control improve, leave unchanged, or worsen quantitative
+estimation?
+
+## The core idea: shared versus specific variation
+
+Every technical effect in the simulation is split into a **shared** component
+(applied identically to the target and the internal control) and a
+**specific** component (drawn independently for each). Delta Ct is the
+difference between target and internal-control Ct. Because the shared component
+enters both channels equally, it cancels in the subtraction; the specific
+components do not. Delta Ct is therefore blind to shared noise but exposed to
+specific noise.
+
+This yields a variance trade. Forming Delta Ct removes the shared variance (a
+gain) but injects the internal control's own specific variance (a cost).
+Normalisation improves accuracy --- lower root-mean-square error against the
+true load --- only when the shared variance removed exceeds the
+control-specific variance introduced.
+
+## The generative model
+
+`simulate_assay()` draws a known true load, applies shared and analyte-specific
+recovery, reverse-transcription, and inhibition effects, then produces qPCR Ct
+values (with technical replicates and detection-limit censoring) and
+sequencing-derived read counts (overdispersed, with detection-limit dropout).
+
+```{r}
+params <- default_parameters()
+params$n_samples <- 300
+simulated <- simulate_assay(params)
+head(simulated[, c("true_log10_viral_load", "target_ct", "delta_ct", "log10_target_reads")])
+```
+
+## Candidate models
+
+Five interpretable linear models estimate the true load from measurable
+quantities: target Ct; Delta Ct; log10 reads; reads plus target Ct; and reads
+plus Delta Ct. The comparisons of interest are target Ct versus Delta Ct (does
+the control help qPCR?) and reads versus reads plus Delta Ct (does the control
+add to a sequencing-based estimate?).
+
+```{r}
+models <- fit_candidate_models(simulated)
+compare_models(models, simulated, cross_validate = FALSE)[, c("model", "rmse", "r_squared")]
+```
+
+## Default calibration
+
+The default parameters are not fitted to any dataset. They describe a generic
+quantitative-sequencing regime and each choice is a statement about assay
+physics rather than about any specific study:
+
+- **Library noise** (`library_shared_sd`, `target_library_specific_sd` = 0.10):
+  a well-optimised preparation contributes modest per-sample variation.
+- **Overdispersion** (`sequencing_concentration` = 400): a deduplicated count
+  assay sits close to Poisson sampling.
+- **Detection limit** (`dropout_midpoint_log10` = 2.0, `dropout_steepness` =
+  4.0): a limit of detection near 100 copies/mL --- a standard clinical
+  threshold --- with a sharp cutoff.
+
+Under these defaults, read count alone is a moderately strong quantitative
+predictor (R-squared around 0.8) and dropout is confined to the low-abundance
+tail. Because the internal control cancels shared recovery and
+reverse-transcription variance, which is present across the dynamic range, its
+benefit is broad rather than tail-specific.
+
+## Interpreting the sensitivity metric
+
+`run_sensitivity_grid()` reports `delta_rmse`, the RMSE of the reads-plus-Delta
+Ct model minus that of the reads-only model. Negative values mean the
+internal-control-adjusted model performed better; values near zero mean it added
+little; positive values mean adjustment worsened prediction.
+
+```{r}
+grid <- run_sensitivity_grid(
+  "shared_recovery_sd", c(0.1, 0.5),
+  "ic_specific_recovery_sd", c(0.05, 0.4),
+  repetitions = 2L
+)
+aggregate(delta_rmse ~ value_x + value_y, data = grid, FUN = mean)
+```
+
+As expected from the variance trade, the adjustment helps most when shared
+recovery variation is large and control-specific variation is small, and helps
+least (or hurts) in the opposite regime.
+
+## Scope
+
+ViralQuantSim is a simulation and benchmarking tool. It is not a clinical
+viral-load calculator, a validated diagnostic device, or a substitute for
+wet-laboratory validation.
+
+## References
+
+Livak KJ, Schmittgen TD (2001). Analysis of relative gene expression data using
+real-time quantitative PCR and the 2^-Delta Delta CT method. *Methods*, 25(4),
+402--408.

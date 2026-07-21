@@ -1,0 +1,12 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^README\.Rmd$
+^config$
+^analysis$
+^CITATION\.cff$
+^FILE_MANIFEST\.txt$
+^START_HERE\.md$
+^LICENSE\.md$
+^\.DS_Store$
+^\.Rhistory$

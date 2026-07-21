@@ -1,0 +1,11 @@
+n_samples: 500
+seed: 42
+viral_load_min: 1.5
+viral_load_max: 6.0
+ic_log10_input: 4.0
+shared_recovery_sd: 0.30
+target_specific_recovery_sd: 0.15
+ic_specific_recovery_sd: 0.15
+qpcr_measurement_sd_ct: 0.25
+ct_limit: 40.0
+mean_total_reads: 2000000

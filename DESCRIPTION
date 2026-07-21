@@ -1,0 +1,33 @@
+Package: viralquantsim
+Title: Simulation and Benchmarking of Internal Controls in Quantitative Pathogen Workflows
+Version: 0.1.0
+Authors@R: 
+    person("Juan", "Monteiro da Silva", role = c("aut", "cre"),
+           email = "juan.monteiro@outlook.com")
+Description: Simulates quantitative pathogen workflows that combine target and
+    spike-in internal-control qPCR measurements with sequencing-derived read
+    counts. The package benchmarks when internal-control normalisation improves,
+    does not change, or worsens viral-load estimation. It is intended for
+    methodological research, teaching, assay design, and software demonstration,
+    not clinical decision-making.
+License: MIT + file LICENSE
+URL: https://github.com/monteirojuan95/viralquantsim
+BugReports: https://github.com/monteirojuan95/viralquantsim/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: R (>= 4.2.0)
+Imports:
+    stats,
+    utils
+Suggests:
+    bslib,
+    DT,
+    ggplot2,
+    knitr,
+    plotly,
+    rmarkdown,
+    shiny,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
